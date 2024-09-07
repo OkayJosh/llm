@@ -34,3 +34,6 @@ app.conf.beat_schedule = {
         'schedule': crontab(minute=schedule_interval_minute, hour=schedule_interval_hour),
     },
 }
+
+# Set Celery broker connection retry on startup
+app.conf.broker_connection_retry_on_startup = True
