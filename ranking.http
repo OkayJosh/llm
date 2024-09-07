@@ -1,0 +1,11 @@
+###
+GET {{host}}api/v1/ranking/
+
+###
+GET {{host}}api/v1/ranking/?rank_by=mean_tps
+
+###
+GET {{host}}api/v1/ranking/?rank_by=mean_e2e_latency
+
+###
+GET {{host}}api/v1/ranking/?rank_by=mean_rps
