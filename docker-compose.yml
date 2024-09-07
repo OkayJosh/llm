@@ -6,6 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: llm:latest
     ports:
       - "8000:8000"
     volumes:
@@ -13,9 +14,7 @@ services:
     depends_on:
       - db
       - redis
-      - celery_worker
-      - celery_beat
-    command: ["./entrypoint.sh"]
+    command: ["/llm/entrypoint.sh"]
     environment:
       - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - CELERY_BROKER_URL=redis://redis:${REDIS_PORT}/0
@@ -23,10 +22,8 @@ services:
 
   # Celery Worker service
   celery_worker:
-    build:
-      context: .
-      dockerfile: Dockerfile  # I used the same Dockerfile as the web app
-    command: celery -A llm worker --loglevel=info
+    image: llm:latest
+    command: ["/llm/celery.worker.entrypoint.sh"]
     depends_on:
       - redis
       - db
@@ -37,10 +34,8 @@ services:
 
   # Celery Beat service
   celery_beat:
-    build:
-      context: .
-      dockerfile: Dockerfile  # I used the same Dockerfile as the web app
-    command: celery -A llm beat --loglevel=info
+    image: llm:latest
+    command: ["/llm/celery.worker.entrypoint.sh"]
     depends_on:
       - redis
       - db
