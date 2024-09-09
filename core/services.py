@@ -22,17 +22,17 @@ class LLMMetricSimulator:
     STD_DEV_E2E = {}
 
     for model in AI_MODELS:
-        MEAN_TTF[model] = config(f'MEAN_TTF_{model.upper()}', 1.0)
-        STD_DEV_TTF[model] = config(f'STD_DEV_TTF_{model.upper()}', 0.2)
-        MEAN_E2E[model] = config(f'MEAN_E2E_{model.upper()}', 3.0)
-        STD_DEV_E2E[model] = config(f'STD_DEV_E2E_{model.upper()}', 0.5)
+        MEAN_TTF[model] = float(config(f'MEAN_TTF_{model.upper()}', 1.0))
+        STD_DEV_TTF[model] = float(config(f'STD_DEV_TTF_{model.upper()}', 0.2))
+        MEAN_E2E[model] = float(config(f'MEAN_E2E_{model.upper()}', 3.0))
+        STD_DEV_E2E[model] = float(config(f'STD_DEV_E2E_{model.upper()}', 0.5))
 
     # Default values for unknown models
     DEFAULT_TTF = (
-    config('DEFAULT_MEAN_TTF', 3.7), config('DEFAULT_STD_DEV_TTF', 0.7)
+    float(config('DEFAULT_MEAN_TTF', 3.7)), float(config('DEFAULT_STD_DEV_TTF', 0.7))
     )
     DEFAULT_E2E = (
-    config('DEFAULT_MEAN_E2E', 3.7), config('DEFAULT_STD_DEV_E2E', 0.7)
+    float(config('DEFAULT_MEAN_E2E', 3.7)), float(config('DEFAULT_STD_DEV_E2E', 0.7))
     )
 
     # Random generation range
