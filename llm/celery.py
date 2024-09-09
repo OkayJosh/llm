@@ -3,6 +3,7 @@ Celery configuration.
 """
 import os
 import logging
+from datetime import timedelta
 
 from celery import Celery
 from celery.schedules import crontab
@@ -23,15 +24,14 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks(['application.llm_service'])
 
 # Read schedule from environment variable
-schedule_interval_minute = config('RANDOM_GENERATOR_SCHEDULE_INTERVAL_MINUTE', '*')
-schedule_interval_hour = config('RANDOM_GENERATOR_SCHEDULE_INTERVAL_HOUR', '*')
+schedule_interval_minute = int(config('RANDOM_GENERATOR_SCHEDULE_INTERVAL_MINUTE', 10))
 
 LOG = logging.getLogger(__name__)
 
 app.conf.beat_schedule = {
-    'generate-performance-metrics-dynamically': {
+    'generate-performance-metrics-every-10-minutes': {
         'task': 'application.llm_service.generate_performance_metrics',
-        'schedule': crontab(minute=schedule_interval_minute, hour=schedule_interval_hour),
+        'schedule': timedelta(minutes=schedule_interval_minute),
     },
 }
 
