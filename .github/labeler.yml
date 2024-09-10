@@ -1,0 +1,18 @@
+---
+docker:
+  - changed-files:
+    - any-glob-to-any-file:
+      - docker/**/*
+      - docker**
+      - Docker*
+
+helm:
+  - changed-files:
+    - any-glob-to-any-file:
+      - llm-app/*
+      - llm-app/**/*
+
+"New Migration":
+  - changed-files:
+    - any-glob-to-any-file:
+      - benchmarks/migrations/*
