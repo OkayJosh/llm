@@ -21,7 +21,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 
 # Set executable permissions for entrypoint.sh
-RUN chmod +x /llm/entrypoint.sh
+RUN chmod +x docker/entrypoint.sh
+
+RUN chmod +x docker/reach_database.sh
 
 ## Set the entry point
 #ENTRYPOINT ["/llm/entrypoint.sh"]

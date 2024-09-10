@@ -4,4 +4,4 @@
 python manage.py migrate --noinput
 
 # Start Celery worker
-celery -A llm worker --loglevel=info
+celery -A llm flower
