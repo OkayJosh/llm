@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llm-config
+data:
+  DATABASE_URL: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}"
+  CELERY_BROKER_URL: "redis://redis:${REDIS_PORT}/0"
+  CELERY_RESULT_BACKEND: "redis://redis:${REDIS_PORT}/0"

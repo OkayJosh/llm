@@ -1,0 +1,132 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llm-web
+  template:
+    metadata:
+      labels:
+        app: llm-web
+    spec:
+      containers:
+      - name: llm-web
+        image: okayjosh/llm:latest
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+        - name: staticfiles
+          mountPath: /llm/staticfiles
+        command: ["/llm/entrypoint.sh"]
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: POSTGRES_PASSWORD
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: POSTGRES_USER
+        - name: REDIS_PORT
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: REDIS_PORT
+      volumes:
+      - name: staticfiles
+        hostPath:
+          path: /llm/staticfiles
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: celery-worker
+  template:
+    metadata:
+      labels:
+        app: celery-worker
+    spec:
+      containers:
+      - name: celery-worker
+        image: okayjosh/llm:latest
+        command: ["/llm/docker/celery.worker.entrypoint.sh"]
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: POSTGRES_PASSWORD
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: POSTGRES_USER
+        - name: REDIS_PORT
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: REDIS_PORT
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-beat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: celery-beat
+  template:
+    metadata:
+      labels:
+        app: celery-beat
+    spec:
+      containers:
+      - name: celery-beat
+        image: okayjosh/llm:latest
+        command: ["/llm/celery.worker.entrypoint.sh"]
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: POSTGRES_PASSWORD
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: POSTGRES_USER
+        - name: REDIS_PORT
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: REDIS_PORT
+
