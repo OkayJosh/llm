@@ -1,33 +1,38 @@
-Prerequisites
-Kubernetes 1.23+
-Helm 3.8.0+
-how to install helm:
- curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+
+# Prerequisites
+- Kubernetes 1.23+
+- Helm 3.8.0+
+
+## How to install Helm:
+```bash
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
 chmod 700 get_helm.sh 
 ./get_helm.sh
-PV provisioner support in the underlying infrastructure
+```
 
+- PV provisioner support in the underlying infrastructure
+
+## Helm Commands:
+```bash
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo add grafana https://grafana.github.io/helm-charts
 
-
 helm dependency update ./llm-app
-
 helm install --generate-name --debug ./llm-app
+```
 
-
-install grafana with postgres as a datasource:
-
+## Install Grafana with PostgreSQL as a Data Source:
+```bash
 helm install my-grafana grafana/grafana \
-  --set datasources.datasources\\.yaml.apiVersion=1 \
-  --set datasources.datasources\\.yaml.datasources[0].name=PostgreSQL \
-  --set datasources.datasources\\.yaml.datasources[0].type=postgres \
-  --set datasources.datasources\\.yaml.datasources[0].url=<POSTGRES_URL>:<POSTGRES_PORT> \
-  --set datasources.datasources\\.yaml.datasources[0].database=<POSTGRES_DB> \
-  --set datasources.datasources\\.yaml.datasources[0].user=<POSTGRES_USER> \
-  --set datasources.datasources\\.yaml.datasources[0].secureJsonData.password=<POSTGRES_PASSWORD> \
-  --set datasources.datasources\\.yaml.datasources[0].access=proxy \
-  --set datasources.datasources\\.yaml.datasources[0].isDefault=true \
+  --set datasources.datasources\.yaml.apiVersion=1 \
+  --set datasources.datasources\.yaml.datasources[0].name=PostgreSQL \
+  --set datasources.datasources\.yaml.datasources[0].type=postgres \
+  --set datasources.datasources\.yaml.datasources[0].url=<POSTGRES_URL>:<POSTGRES_PORT> \
+  --set datasources.datasources\.yaml.datasources[0].database=<POSTGRES_DB> \
+  --set datasources.datasources\.yaml.datasources[0].user=<POSTGRES_USER> \
+  --set datasources.datasources\.yaml.datasources[0].secureJsonData.password=<POSTGRES_PASSWORD> \
+  --set datasources.datasources\.yaml.datasources[0].access=proxy \
+  --set datasources.datasources\.yaml.datasources[0].isDefault=true \
   --set dashboards.default.my-dashboard.json="{ \
       \"id\": 1, \
       \"title\": \"PostgreSQL Dashboard\", \
@@ -46,54 +51,64 @@ helm install my-grafana grafana/grafana \
         } \
       ] \
     }"
+```
 
+*Replace the raw SQL with the ranking query.*
 
-# replcae the rawSql with the ranking query
-
-# update the secrets in Kubernetes, you modify the secret using the kubectl command:
-
+## Update Kubernetes Secrets:
+```bash
 kubectl create secret generic db-secrets --from-env-file=.env --dry-run=client -o yaml | kubectl apply -f -
+```
 
-# verify secret creation:
-
+### Verify Secret Creation:
+```bash
 kubectl get secret db-secrets -o yaml
+```
 
-# Rolling Updates and Pod Restarts
+## Rolling Updates and Pod Restarts:
+```bash
 kubectl rollout restart deployment/llm-web
 kubectl rollout restart deployment/celery-worker
 kubectl rollout restart deployment/celery-beat
+```
 
-# access to the service
-minikube turnnel
+## Access to the Service:
+```bash
+minikube tunnel
+```
 
-# to see the env in the pod
+## To See the Environment in the Pod:
+```bash
 kubectl exec -it <pod-name> -- printenv | grep DJANGO_ALLOWED_HOSTS
+```
 
-
+## Helm Repo Add and Update:
+```bash
 helm repo add grafana https://grafana.github.io/helm-charts
 helm repo update
+```
 
+## Install Grafana with PostgreSQL Data Source:
+```bash
 helm install my-grafana grafana/grafana \
-  --set datasources.datasources\\.yaml.apiVersion=1 \
-  --set datasources.datasources\\.yaml.datasources[0].name=PostgreSQL \
-  --set datasources.datasources\\.yaml.datasources[0].type=postgres \
-  --set datasources.datasources\\.yaml.datasources[0].url=postgres_service \
-  --set datasources.datasources\\.yaml.datasources[0].database=llm \
-  --set datasources.datasources\\.yaml.datasources[0].user=code \
-  --set datasources.datasources\\.yaml.datasources[0].secureJsonData.password=1AFUSGlJujzrLgs5iitHW7Buxi4pkUKh \
-  --set datasources.datasources\\.yaml.datasources[0].access=proxy \
-  --set datasources.datasources\\.yaml.datasources[0].isDefault=true
+  --set datasources.datasources\.yaml.apiVersion=1 \
+  --set datasources.datasources\.yaml.datasources[0].name=PostgreSQL \
+  --set datasources.datasources\.yaml.datasources[0].type=postgres \
+  --set datasources.datasources\.yaml.datasources[0].url=postgres_service \
+  --set datasources.datasources\.yaml.datasources[0].database=llm \
+  --set datasources.datasources\.yaml.datasources[0].user=code \
+  --set datasources.datasources\.yaml.datasources[0].secureJsonData.password=1AFUSGlJujzrLgs5iitHW7Buxi4pkUKh \
+  --set datasources.datasources\.yaml.datasources[0].access=proxy \
+  --set datasources.datasources\.yaml.datasources[0].isDefault=true
+```
 
-
-2XVW8KdpQqXKR9vj8oOTyKQyqH9assitiws8HIeR
-
-
-
+## Code Execution:
+```python
 from application.llm_service import LLMPerformanceService
 
 LLMPerformanceService().generate_performance_metrics.delay()
 
-
 from application.llm_service import LLMPerformanceService
 
 LLMPerformanceService().generate_performance_metrics()
+```
