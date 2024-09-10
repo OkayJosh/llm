@@ -1,0 +1,215 @@
+# Default values for Django.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Django Deployment Values
+replicaCount: 1
+revisionHistoryLimit: 2
+image:
+  repository: okayjosh/llm
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+  containerPort: 8081
+
+command: 'gunicorn llm.wsgi -b 0.0.0.0:8081'
+
+
+# Django Deployment Settings
+# Init Container to collect static files
+collect_static:
+  enabled: false
+  name: staticfiles
+  command: "python manage.py collectstatic --noinput"
+
+# Job to run database migrations
+db_migrations:
+  enabled: true
+  name: db-migration
+  command: "python manage.py migrate --noinput"
+  resources: {}
+  safeToEvict: true
+
+# Django Static files and Media data folders
+# Set to path from working directory
+data:
+  staticfiles: "llm/staticfiles/"
+  data_media: "llm/data_media/"
+
+probes:
+  liveness:
+    enabled: true
+    path: /healthy
+  readiness:
+    enabled: true
+    path: /ready
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# Django Service Values
+service:
+  type: ClusterIP
+  port: 80
+
+# Caddy Settings ( Proxy Setup )
+proxy:
+  repository: caddy
+  pullPolicy: IfNotPresent
+  tag: "2.1.1-alpine"
+  containerPort: 8000
+
+# Env ConfigMap values
+envConfigs:
+  STATIC_ROOT: "staticfiles"
+  CELERY_BROKER_URL: ""
+  DATABASE_URL: "postgres://{{ .Values.postgresql.postgresqlUsername }}:{{ .Values.postgresql.postgresqlPassword }}@{{ .Values.postgresql.postgresqlHost }}:{{ .Values.postgresql.service.port }}/{{ .Values.postgresql.postgresqlDatabase }}"
+
+# Enc Secret Values (Base64 encoded data)
+envSecrets: {}
+
+
+# Django Ingress Values
+ingress:
+  enabled: true
+  annotations: {}
+  hosts:
+    - host: example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+celery:
+  # Celery Beat Values
+  beat:
+    enabled: true
+    componentName: celery-beat
+    command: 'celery -A llm beat -l DEBUG'
+    replicaCount: 1
+    strategy: Recreate
+  # Celery Worker Settings
+  worker:
+    componentName: celery-worker
+    command: 'celery -A llm worker -l DEBUG'
+    replicaCount: 1
+    strategy: RollingUpdate
+  # Celery Flower Settings
+  flower:
+    componentName: celery-flower
+    command: 'celery -A llm flower'
+    replicaCount: 1
+    strategy: RollingUpdate
+    service:
+      type: ClusterIP
+      port:
+        number: 5555
+        name: flower
+    ingress:
+      enabled: false
+      annotations: {}
+      hosts:
+        - host: example.com
+          paths:
+            - path: /
+              pathType: Prefix
+      tls: []
+
+# Disable subchart by setting enabled value to false
+redis:
+  enabled: true
+  password: redis
+  master:
+    podSecurityContext:
+      enabled: true
+      fsGroup: 1001
+
+    containerSecurityContext:
+      enabled: true
+      runAsUser: 1001
+
+  replica:
+    podSecurityContext:
+      enabled: true
+      fsGroup: 1001
+
+    containerSecurityContext:
+      enabled: true
+      runAsUser: 1001
+
+  volumePermissions:
+    enabled: true
+    runAsUser: 1001
+
+# PostgreSQL Configuration
+postgresql:
+  enabled: true
+  postgresqlUsername: code
+  postgresqlPassword: 1AFUSGlJujzrLgs5iitHW7Buxi4pkUKh
+  postgresqlDatabase: llm
+  postgresqlHost: postgres
+  service:
+    port: 5432
+  persistence:
+    enabled: false # Set to true to enable data persistence
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+grafana:
+  enabled: true
+  adminPassword: "admin_password"
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: true
+  persistence:
+    enabled: true
