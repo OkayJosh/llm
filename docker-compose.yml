@@ -14,16 +14,50 @@ services:
     depends_on:
       - db
       - redis
-    command: ["/llm/entrypoint.sh"]
+    command: ["/llm/docker/entrypoint.sh"]
     environment:
+      - SECRET_KEY=django-insecure-%3*hw-&88eg&o23&=%7qymbax_obfoefey=e-bn6yzp-qlww2
+      - DEBUG=True
+      - ALLOWED_HOSTS=127.0.0.1,localhost,0.0.0.0,web-service,*
       - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - CELERY_BROKER_URL=redis://redis:${REDIS_PORT}/0
       - CELERY_RESULT_BACKEND=redis://redis:${REDIS_PORT}/0
+      - MAX_ONE_TIME_GENERATION=1000
+      - AI_MODELS=gpt_4,claude_2,llama_3
+      - MEAN_TTF_GPT_4=1.0
+      - STD_DEV_TTF_GPT_4=0.2
+      - MEAN_TTF_CLAUDE_2=1.2
+      - STD_DEV_TTF_CLAUDE_2=0.25
+      - MEAN_TTF_LLAMA_3=1.4
+      - STD_DEV_TTF_LLAMA_3=0.3
+      - MEAN_E2E_GPT_4=3.0
+      - STD_DEV_E2E_GPT_4=0.5
+      - MEAN_E2E_CLAUDE_2=3.2
+      - STD_DEV_E2E_CLAUDE_2=0.6
+      - MEAN_E2E_LLAMA_3=3.5
+      - STD_DEV_E2E_LLAMA_3=0.7
+      - DEFAULT_MEAN_TTF=3.7
+      - DEFAULT_STD_DEV_TTF=0.7
+      - DEFAULT_MEAN_E2E=3.7
+      - DEFAULT_STD_DEV_E2E=0.7
+      - MIN_TOKENS_GENERATED=50
+      - MAX_TOKENS_GENERATED=200
+      - RANDOM_GENERATOR_SCHEDULE_INTERVAL_MINUTE=10
+      - RANDOM_GENERATOR_SCHEDULE_INTERVAL_HOUR=*
+      - CELERY_WORKER_POOL_TYPE=prefork
+      - CELERY_WORKER_AUTOSCALE_MAX=10
+      - CELERY_WORKER_AUTOSCALE_MIN=2
+      - CELERY_WORKER_PREFETCH_MULTIPLIER=4
+      - CELERY_LOG_LEVEL=info
+      - CELERY_WORKER_CONCURRENCY=4
+      - GUNICORN_WORKERS=3
+      - GUNICORN_LOG_LEVEL=info
+      - GUNICORN_TIMEOUT=30
 
   # Celery Worker service
   celery_worker:
     image: llm:latest
-    command: ["/llm/celery.worker.entrypoint.sh"]
+    command: ["/llm/docker/celery.worker.entrypoint.sh"]
     depends_on:
       - redis
       - db
@@ -35,7 +69,7 @@ services:
   # Celery Beat service
   celery_beat:
     image: llm:latest
-    command: ["/llm/celery.worker.entrypoint.sh"]
+    command: ["/llm/docker/celery.worker.entrypoint.sh"]
     depends_on:
       - redis
       - db
@@ -55,6 +89,12 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "${DB_PORT}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 5s
 
   # Redis service
   redis:
@@ -62,6 +102,12 @@ services:
     command: ["redis-server", "--port", "${REDIS_PORT}"]
     ports:
       - "${REDIS_PORT}:${REDIS_PORT}"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 5s
 
 volumes:
   postgres_data: {}
