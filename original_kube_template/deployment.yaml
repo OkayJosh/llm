@@ -1,0 +1,435 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llm-web
+  template:
+    metadata:
+      labels:
+        app: llm-web
+    spec:
+      containers:
+      - name: llm-web
+        image: okayjosh/llm:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: AI_MODELS
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: AI_MODELS
+        - name: ALLOWED_HOSTS
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: ALLOWED_HOSTS
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DATABASE_URL
+        - name: DB_PORT
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DB_PORT
+        - name: DEBUG
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DEBUG
+        - name: DEFAULT_MEAN_E2E
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DEFAULT_MEAN_E2E
+        - name: DEFAULT_MEAN_TTF
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DEFAULT_MEAN_TTF
+        - name: DEFAULT_STD_DEV_E2E
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DEFAULT_STD_DEV_E2E
+        - name: DEFAULT_STD_DEV_TTF
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DEFAULT_STD_DEV_TTF
+        - name: MAX_ONE_TIME_GENERATION
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: MAX_ONE_TIME_GENERATION
+        - name: MAX_TOKENS_GENERATED
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: MAX_TOKENS_GENERATED
+        - name: MEAN_E2E_CLAUDE_2
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: MEAN_E2E_CLAUDE_2
+        - name: MEAN_E2E_GPT_4
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: MEAN_E2E_GPT_4
+        - name: MEAN_E2E_LLAMA_3
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: MEAN_E2E_LLAMA_3
+        - name: MEAN_TTF_CLAUDE_2
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: MEAN_TTF_CLAUDE_2
+        - name: MEAN_TTF_GPT_4
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: MEAN_TTF_GPT_4
+        - name: MEAN_TTF_LLAMA_3
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: MEAN_TTF_LLAMA_3
+        - name: MIN_TOKENS_GENERATED
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: MIN_TOKENS_GENERATED
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: POSTGRES_DB
+        - name: POSTGRES_HOST
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: POSTGRES_HOST
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: POSTGRES_PASSWORD
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: POSTGRES_USER
+        - name: RANDOM_GENERATOR_SCHEDULE_INTERVAL_HOUR
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: RANDOM_GENERATOR_SCHEDULE_INTERVAL_HOUR
+        - name: RANDOM_GENERATOR_SCHEDULE_INTERVAL_MINUTE
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: RANDOM_GENERATOR_SCHEDULE_INTERVAL_MINUTE
+        - name: REDIS_HOST
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: REDIS_HOST
+        - name: REDIS_PORT
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: REDIS_PORT
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: REDIS_URL
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: SECRET_KEY
+        - name: STD_DEV_E2E_CLAUDE_2
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: STD_DEV_E2E_CLAUDE_2
+        - name: STD_DEV_E2E_GPT_4
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: STD_DEV_E2E_GPT_4
+        - name: STD_DEV_E2E_LLAMA_3
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: STD_DEV_E2E_LLAMA_3
+        - name: STD_DEV_TTF_CLAUDE_2
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: STD_DEV_TTF_CLAUDE_2
+        - name: STD_DEV_TTF_GPT_4
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: STD_DEV_TTF_GPT_4
+        - name: GUNICORN_WORKERS
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: GUNICORN_WORKERS
+        - name: GUNICORN_LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: GUNICORN_LOG_LEVEL
+        - name: GUNICORN_TIMEOUT
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: GUNICORN_TIMEOUT
+        - name: STD_DEV_TTF_LLAMA_3
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: STD_DEV_TTF_LLAMA_3
+        command: ["/llm/docker/entrypoint.sh"]
+      volumes:
+      - name: staticfiles
+        hostPath:
+          path: /llm/staticfiles
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: celery-worker
+  template:
+    metadata:
+      labels:
+        app: celery-worker
+    spec:
+      containers:
+      - name: celery-worker
+        image: okayjosh/llm:latest
+        env:
+        - name: CELERY_WORKER_POOL_TYPE
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: CELERY_WORKER_POOL_TYPE
+        - name: CELERY_WORKER_AUTOSCALE_MAX
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: CELERY_WORKER_AUTOSCALE_MAX
+        - name: CELERY_WORKER_AUTOSCALE_MIN
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: CELERY_WORKER_AUTOSCALE_MIN
+        - name: CELERY_WORKER_PREFETCH_MULTIPLIER
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: CELERY_WORKER_PREFETCH_MULTIPLIER
+        - name: CELERY_LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: CELERY_LOG_LEVEL
+        - name: CELERY_WORKER_CONCURRENCY
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: CELERY_WORKER_CONCURRENCY
+        - name: AI_MODELS
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: AI_MODELS
+        - name: ALLOWED_HOSTS
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: ALLOWED_HOSTS
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DATABASE_URL
+        - name: DB_PORT
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DB_PORT
+        - name: DEBUG
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DEBUG
+        - name: DEFAULT_MEAN_E2E
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DEFAULT_MEAN_E2E
+        - name: DEFAULT_MEAN_TTF
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DEFAULT_MEAN_TTF
+        - name: DEFAULT_STD_DEV_E2E
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DEFAULT_STD_DEV_E2E
+        - name: DEFAULT_STD_DEV_TTF
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DEFAULT_STD_DEV_TTF
+        - name: MAX_ONE_TIME_GENERATION
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: MAX_ONE_TIME_GENERATION
+        - name: MAX_TOKENS_GENERATED
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: MAX_TOKENS_GENERATED
+        - name: MEAN_E2E_CLAUDE_2
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: MEAN_E2E_CLAUDE_2
+        - name: MEAN_E2E_GPT_4
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: MEAN_E2E_GPT_4
+        - name: MEAN_E2E_LLAMA_3
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: MEAN_E2E_LLAMA_3
+        - name: MEAN_TTF_CLAUDE_2
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: MEAN_TTF_CLAUDE_2
+        - name: MEAN_TTF_GPT_4
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: MEAN_TTF_GPT_4
+        - name: MEAN_TTF_LLAMA_3
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: MEAN_TTF_LLAMA_3
+        - name: MIN_TOKENS_GENERATED
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: MIN_TOKENS_GENERATED
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: POSTGRES_DB
+        - name: POSTGRES_HOST
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: POSTGRES_HOST
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: POSTGRES_PASSWORD
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: POSTGRES_USER
+        - name: RANDOM_GENERATOR_SCHEDULE_INTERVAL_HOUR
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: RANDOM_GENERATOR_SCHEDULE_INTERVAL_HOUR
+        - name: RANDOM_GENERATOR_SCHEDULE_INTERVAL_MINUTE
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: RANDOM_GENERATOR_SCHEDULE_INTERVAL_MINUTE
+        - name: REDIS_HOST
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: REDIS_HOST
+        - name: REDIS_PORT
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: REDIS_PORT
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: REDIS_URL
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: SECRET_KEY
+        - name: STD_DEV_E2E_CLAUDE_2
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: STD_DEV_E2E_CLAUDE_2
+        - name: STD_DEV_E2E_GPT_4
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: STD_DEV_E2E_GPT_4
+        - name: STD_DEV_E2E_LLAMA_3
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: STD_DEV_E2E_LLAMA_3
+        - name: STD_DEV_TTF_CLAUDE_2
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: STD_DEV_TTF_CLAUDE_2
+        - name: STD_DEV_TTF_GPT_4
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: STD_DEV_TTF_GPT_4
+        - name: STD_DEV_TTF_LLAMA_3
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: STD_DEV_TTF_LLAMA_3
+        command: ["/llm/docker/celery.worker.entrypoint.sh"]
+      volumes:
+      - name: secrets
+        secret:
+          secretName: db-secrets
