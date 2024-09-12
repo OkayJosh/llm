@@ -1,11 +1,10 @@
 #!/bin/bash
 
 # Make the database check script executable
-chmod +x ./reach_database.sh
+#chmod +x ./reach_database.sh
 
 # Navigate to the project directory
-PROJECT_DIR="$HOME/llm" # Should work like this in Docker
-PROJECT_DIR="$HOME/lycon/llm"
+PROJECT_DIR="$WORKDIR" # Should work like this in Docker
 echo "Changing to project directory: ${PROJECT_DIR}..."
 cd "${PROJECT_DIR}" || {
     echo "Failed to change to project directory. Exiting." >&2
