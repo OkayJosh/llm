@@ -12,18 +12,36 @@ ENV DJANGO_SETTINGS_MODULE llm.settings
 # Set the working directory in the container
 WORKDIR /llm
 
-# Copy the current directory contents into the container at /bookflow
+# Optional: Set WORKDIR as an environment variable so it's available in scripts
+ENV WORKDIR /llm
+
+# Copy the current directory contents into the container at /llm
 COPY . /llm
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir psycopg2-binary
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Create a directory for Celery files and set permissions
+RUN mkdir -p /var/run/llm && \
+    chown -R www-data:www-data /var/run/llm
 
-# Set executable permissions for entrypoint.sh
-RUN chmod +x docker/entrypoint.sh
+# Create the staticfiles directory and set the ownership to www-data
+RUN mkdir -p /llm/staticfiles && \
+    chown -R www-data:www-data /llm/staticfiles
 
-RUN chmod +x docker/reach_database.sh
+# Set appropriate permissions for the application directory
+RUN chown -R www-data:www-data /llm
 
-## Set the entry point
-#ENTRYPOINT ["/llm/entrypoint.sh"]
+# Copy .env.example to .env
+COPY .env.example .env
+
+# Set executable permissions for entrypoint.sh and reach_database.sh
+RUN chmod +x /llm/docker/entrypoint.sh
+RUN chmod +x /llm/docker/reach_database.sh
+
+# Switch to non-root user
+USER www-data
+
+# Collect static files during the build
+RUN python manage.py collectstatic --noinput
