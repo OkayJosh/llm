@@ -1,114 +1,26 @@
 
 # Prerequisites
-- Kubernetes 1.23+
-- Helm 3.8.0+
+- docker
+- docker compose
 
-## How to install Helm:
+## How to start llm:
 ```bash
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-chmod 700 get_helm.sh 
-./get_helm.sh
+docker compose up
 ```
 
-- PV provisioner support in the underlying infrastructure
+find endpoints at
+[ranking.http](ranking.http)
 
-## Helm Commands:
+## How to stop llm:
 ```bash
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm repo add grafana https://grafana.github.io/helm-charts
-
-helm dependency update ./llm-app
-helm install --generate-name --debug ./llm-app
+docker compose down
 ```
 
-## Install Grafana with PostgreSQL as a Data Source:
-```bash
-helm install my-grafana grafana/grafana \
-  --set datasources.datasources\.yaml.apiVersion=1 \
-  --set datasources.datasources\.yaml.datasources[0].name=PostgreSQL \
-  --set datasources.datasources\.yaml.datasources[0].type=postgres \
-  --set datasources.datasources\.yaml.datasources[0].url=<POSTGRES_URL>:<POSTGRES_PORT> \
-  --set datasources.datasources\.yaml.datasources[0].database=<POSTGRES_DB> \
-  --set datasources.datasources\.yaml.datasources[0].user=<POSTGRES_USER> \
-  --set datasources.datasources\.yaml.datasources[0].secureJsonData.password=<POSTGRES_PASSWORD> \
-  --set datasources.datasources\.yaml.datasources[0].access=proxy \
-  --set datasources.datasources\.yaml.datasources[0].isDefault=true \
-  --set dashboards.default.my-dashboard.json="{ \
-      \"id\": 1, \
-      \"title\": \"PostgreSQL Dashboard\", \
-      \"panels\": [ \
-        { \
-          \"type\": \"table\", \
-          \"title\": \"Sample SQL Query\", \
-          \"targets\": [ \
-            { \
-              \"rawSql\": \"SELECT * FROM my_table LIMIT 10\", \
-              \"refId\": \"A\", \
-              \"datasource\": \"PostgreSQL\" \
-            } \
-          ], \
-          \"gridPos\": { \"h\": 10, \"w\": 24, \"x\": 0, \"y\": 0 } \
-        } \
-      ] \
-    }"
-```
+## Activate the Rank monitoring:
+Go to http://localhost:3004/ login with username `admin` and password `grafana`
 
-*Replace the raw SQL with the ranking query.*
+go to dashboard click on import dashboard![import-dashbord.png](import-dashbord.png)
 
-## Update Kubernetes Secrets:
-```bash
-kubectl create secret generic db-secrets --from-env-file=.env --dry-run=client -o yaml | kubectl apply -f -
-```
+copy the json file at [dashboard.json](provisioning/dashboard/dashboard.json) and click load
 
-### Verify Secret Creation:
-```bash
-kubectl get secret db-secrets -o yaml
-```
-
-## Rolling Updates and Pod Restarts:
-```bash
-kubectl rollout restart deployment/llm-web
-kubectl rollout restart deployment/celery-worker
-kubectl rollout restart deployment/celery-beat
-```
-
-## Access to the Service:
-```bash
-minikube tunnel
-```
-
-## To See the Environment in the Pod:
-```bash
-kubectl exec -it <pod-name> -- printenv | grep DJANGO_ALLOWED_HOSTS
-```
-
-## Helm Repo Add and Update:
-```bash
-helm repo add grafana https://grafana.github.io/helm-charts
-helm repo update
-```
-
-## Install Grafana with PostgreSQL Data Source:
-```bash
-helm install my-grafana grafana/grafana \
-  --set datasources.datasources\.yaml.apiVersion=1 \
-  --set datasources.datasources\.yaml.datasources[0].name=PostgreSQL \
-  --set datasources.datasources\.yaml.datasources[0].type=postgres \
-  --set datasources.datasources\.yaml.datasources[0].url=postgres_service \
-  --set datasources.datasources\.yaml.datasources[0].database=llm \
-  --set datasources.datasources\.yaml.datasources[0].user=code \
-  --set datasources.datasources\.yaml.datasources[0].secureJsonData.password=1AFUSGlJujzrLgs5iitHW7Buxi4pkUKh \
-  --set datasources.datasources\.yaml.datasources[0].access=proxy \
-  --set datasources.datasources\.yaml.datasources[0].isDefault=true
-```
-
-## Code Execution:
-```python
-from application.llm_service import LLMPerformanceService
-
-LLMPerformanceService().generate_performance_metrics.delay()
-
-from application.llm_service import LLMPerformanceService
-
-LLMPerformanceService().generate_performance_metrics()
-```
+Congratulations!

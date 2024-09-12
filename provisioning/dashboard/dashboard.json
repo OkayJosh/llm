@@ -1,0 +1,114 @@
+{
+  "datasource": {
+    "default": false,
+    "uid": "PCC52D03280B7034C",
+    "type": "grafana-postgresql-datasource"
+  },
+  "fieldConfig": {
+    "defaults": {
+      "custom": {
+        "drawStyle": "line",
+        "lineInterpolation": "linear",
+        "barAlignment": 0,
+        "barWidthFactor": 0.6,
+        "lineWidth": 1,
+        "fillOpacity": 0,
+        "gradientMode": "none",
+        "spanNulls": false,
+        "insertNulls": false,
+        "showPoints": "auto",
+        "pointSize": 5,
+        "stacking": {
+          "mode": "none",
+          "group": "A"
+        },
+        "axisPlacement": "auto",
+        "axisLabel": "",
+        "axisColorMode": "text",
+        "axisBorderShow": false,
+        "scaleDistribution": {
+          "type": "linear"
+        },
+        "axisCenteredZero": false,
+        "hideFrom": {
+          "tooltip": false,
+          "viz": false,
+          "legend": false
+        },
+        "thresholdsStyle": {
+          "mode": "off"
+        }
+      },
+      "color": {
+        "mode": "palette-classic"
+      },
+      "mappings": [],
+      "thresholds": {
+        "mode": "absolute",
+        "steps": [
+          {
+            "color": "green",
+            "value": null
+          },
+          {
+            "color": "red",
+            "value": 80
+          }
+        ]
+      }
+    },
+    "overrides": []
+  },
+  "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 0
+  },
+  "id": 1,
+  "targets": [
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PCC52D03280B7034C"
+      },
+      "editorMode": "code",
+      "format": "time_series",
+      "rawQuery": true,
+      "rawSql": "SELECT\n  date_trunc('minute', \"benchmarks_llmperformance\".\"created\") AS \"time\",\n  \"benchmarks_llmmodel\".\"name\" AS \"model_name\",\n  ROUND(CAST(AVG(\"benchmarks_llmperformance\".\"time_to_first_token\") AS NUMERIC), 2) AS \"mean_ttft\",\n  ROUND(CAST(AVG(\"benchmarks_llmperformance\".\"tokens_per_second\") AS NUMERIC), 2) AS \"mean_tps\",\n  ROUND(CAST(AVG(\"benchmarks_llmperformance\".\"e2e_latency\") AS NUMERIC), 2) AS \"mean_e2e_latency\",\n  ROUND(CAST(AVG(\"benchmarks_llmperformance\".\"requests_per_second\") AS NUMERIC), 2) AS \"mean_rps\"\nFROM\n  \"benchmarks_llmperformance\"\nINNER JOIN\n  \"benchmarks_llmmodel\"\nON\n  \"benchmarks_llmperformance\".\"llm_id\" = \"benchmarks_llmmodel\".\"id\"\nGROUP BY\n  \"benchmarks_llmmodel\".\"name\",\n  date_trunc('minute', \"benchmarks_llmperformance\".\"created\")\nORDER BY\n  \"time\" ASC;\n",
+      "refId": "A",
+      "sql": {
+        "columns": [
+          {
+            "parameters": [],
+            "type": "function"
+          }
+        ],
+        "groupBy": [
+          {
+            "property": {
+              "type": "string"
+            },
+            "type": "groupBy"
+          }
+        ],
+        "limit": 50
+      }
+    }
+  ],
+  "title": "LLM Stat Ranking",
+  "type": "timeseries",
+  "pluginVersion": "11.2.0",
+  "options": {
+    "tooltip": {
+      "mode": "single",
+      "sort": "none"
+    },
+    "legend": {
+      "showLegend": true,
+      "displayMode": "list",
+      "placement": "right",
+      "calcs": []
+    }
+  }
+}
